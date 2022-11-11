@@ -1,0 +1,16 @@
+$bg: #141414;
+$primary: #323232;
+$secondary: #1d1d1d;
+
+$accent: #1763d4;
+$btncol: #104a9b;
+
+$subtext: #bbbbbb;
+$subtext-size: 0.8rem;
+
+@mixin flex-box($justify: center, $align: center, $direction: row) {
+  display: flex;
+  justify-content: $justify;
+  align-items: $align;
+  flex-direction: $direction;
+}

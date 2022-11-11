@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Music Player</title>
+    <style>
+      * {
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+        color: white;
+        font-family: sans-serif;
+      }
+
+      html {
+        height: 100vh;
+        width: 100vw;
+      }
+
+      body {
+        width: 100%;
+        height: 100%;
+        background: #141414;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        overflow: hidden;
+        -webkit-app-region: drag;
+      }
+
+      body > * {
+        flex: 1;
+      }
+
+      .title {
+        flex: 2;
+      }
+
+      .controls {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+      }
+
+      .controls svg {
+        height: 1.3rem;
+        margin: 0.7rem;
+        transition: opacity 100ms linear;
+        cursor: pointer;
+        -webkit-app-region: no-drag;
+      }
+
+      .thumbnail {
+        height: 5rem;
+        border-radius: 0.4rem;
+        width: 5rem;
+        max-width: 5rem;
+      }
+
+      .background-img {
+        position: absolute;
+        width: 100vw;
+        max-width: 100vw;
+        height: 100vw;
+        z-index: -1;
+        filter: blur(13px) brightness(75%);
+        opacity: 0.6;
+      }
+    </style>
+  </head>
+  <body>
+    <p class="title" id="title">Lorem ipsum dolor sit amet.</p>
+    <div class="controls" id="controls">
+      <svg viewBox="0 0 120 100" style="transform: rotate(180deg);" id="prev">
+        <polygon fill="white" points="0,0 60,50 0,100"></polygon>
+        <polygon fill="white" points="60,0 120,50 60,100"></polygon>
+      </svg>
+      <svg id="pause-play" viewBox="0 0 80 100">
+        <polygon fill="white" points="0,0 26.6,0 26.6,100 0,100">
+          <animate
+            id="box1-pause"
+            begin="indefinite"
+            attributeName="points"
+            dur="150ms"
+            fill="freeze"
+            to="0,0 26.6,0 26.6,100 0,100"
+          />
+          <animate
+            id="box1-play"
+            begin="indefinite"
+            attributeName="points"
+            dur="150ms"
+            fill="freeze"
+            to="80,50 80,50 0,50 0,0"
+          />
+        </polygon>
+        <polygon fill="white" points="53.4,0 80,0 80,100 53.4,100">
+          <animate
+            id="box2-pause"
+            begin="indefinite"
+            attributeName="points"
+            dur="150ms"
+            fill="freeze"
+            to="53.4,0 80,0 80,100 53.4,100"
+          />
+          <animate
+            id="box2-play"
+            begin="indefinite"
+            attributeName="points"
+            fill="freeze"
+            dur="150ms"
+            to="80,50 80,50 0,100 0,50"
+          />
+        </polygon>
+      </svg>
+      <svg viewBox="0 0 120 100" id="next">
+        <polygon fill="white" points="0,0 60,50 0,100"></polygon>
+        <polygon fill="white" points="60,0 120,50 60,100"></polygon>
+      </svg>
+    </div>
+    <img class="thumbnail" id="thumbnail" src="http://placekitten.com/200/200" alt="image" />
+    <img class="background-img" id="bg-img" src="http://placekitten.com/200/200" alt="image" />
+
+    <script>
+      const { ipcRenderer } = window.require('electron');
+
+      const p = document.getElementById('title');
+      const thumbnail = document.getElementById('thumbnail');
+      const bgImg = document.getElementById('bg-img');
+
+      let paused = false;
+
+      document.getElementById('prev').addEventListener('click', () => {
+        ipcRenderer.send('remote-prev');
+      });
+
+      document.getElementById('next').addEventListener('click', () => {
+        ipcRenderer.send('remote-next');
+      });
+
+      const pausePlay = document.getElementById('pause-play');
+      pausePlay.addEventListener('click', () => {
+        ipcRenderer.send('remote-pause-play');
+      });
+
+      ipcRenderer.on('song-update', (evt, song) => {
+        thumbnail.src = song.thumbnail;
+        bgImg.src = song.thumbnail;
+        p.innerText = song.title;
+        if (paused) {
+          paused = false;
+          document.getElementById('box1-play').beginElement();
+          document.getElementById('box2-play').beginElement();
+        }
+      });
+
+      ipcRenderer.on('song-pause-play', (evt, isPaused) => {
+        paused = isPaused;
+
+        if (isPaused) {
+          document.getElementById('box1-play').beginElement();
+          document.getElementById('box2-play').beginElement();
+        } else {
+          document.getElementById('box1-pause').beginElement();
+          document.getElementById('box2-pause').beginElement();
+        }
+      });
+
+      document.addEventListener('DOMContentLoaded', () => ipcRenderer.send('remote-ready'));
+    </script>
+  </body>
+</html>
